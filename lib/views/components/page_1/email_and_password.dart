@@ -7,7 +7,12 @@ import '../../widgets/build_text_field.dart';
 class EmailAndPasswordTextField extends StatefulWidget {
   const EmailAndPasswordTextField({
     Key? key,
+    required this.formkey,
+    required this.profile,
   }) : super(key: key);
+
+  final GlobalKey<FormState> formkey;
+  final Profile profile;
 
   @override
   State<EmailAndPasswordTextField> createState() =>
@@ -15,35 +20,36 @@ class EmailAndPasswordTextField extends StatefulWidget {
 }
 
 class _EmailAndPasswordTextFieldState extends State<EmailAndPasswordTextField> {
-  Profile profile = Profile();
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        BuildTextField(
-          text: "Email",
-          image: "assets/icons/email.svg",
-          textType: TextInputType.emailAddress,
-          validate: MultiValidator(
-            [
-              RequiredValidator(errorText: "Please Enter Your email"),
-              EmailValidator(errorText: "Invalid email format"),
-            ],
+    return Form(
+      key: widget.formkey,
+      child: Column(
+        children: [
+          BuildTextField(
+            text: "Email",
+            image: "assets/icons/email.svg",
+            textType: TextInputType.emailAddress,
+            validate: MultiValidator(
+              [
+                RequiredValidator(errorText: "Please Enter Your email"),
+                EmailValidator(errorText: "Invalid email format"),
+              ],
+            ),
+            save: (value) => widget.profile.email = value.toString().trim(),
           ),
-          save: (value) => profile.email = value.toString().trim(),
-        ),
-        BuildTextField(
-          text: "Password",
-          image: "assets/icons/password.svg",
-          obsecure: true,
-          textType: TextInputType.number,
-          validate: RequiredValidator(
-            errorText: "Please Enter Your Password",
+          BuildTextField(
+            text: "Password",
+            image: "assets/icons/password.svg",
+            obsecure: true,
+            textType: TextInputType.number,
+            validate: RequiredValidator(
+              errorText: "Please Enter Your Password",
+            ),
+            save: (value) => widget.profile.password = value.toString().trim(),
           ),
-          save: (value) => profile.password = value.toString().trim(),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

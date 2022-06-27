@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_my_login/views/components/login_ui.dart';
 import 'package:flutter_my_login/views/components/page_1/title_header_with_image.dart';
 import 'package:flutter_my_login/views/components/register.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../constants.dart';
 import '../../models/profile.dart';
@@ -9,6 +11,7 @@ import '../../widgets/btn.dart';
 import '../../widgets/build_rich_text.dart';
 import '../../widgets/login_and_register.dart';
 import '../../widgets/text_btn.dart';
+import '../profile_ui.dart';
 import 'email_and_password.dart';
 
 class SignInWithEmailAndPassword extends StatefulWidget {
@@ -24,9 +27,39 @@ class SignInWithEmailAndPassword extends StatefulWidget {
 class _SignInWithEmailAndPasswordState
     extends State<SignInWithEmailAndPassword> {
   Profile profile = Profile();
+  final formKey = GlobalKey<FormState>();
+  final Future<FirebaseApp> firebase = Firebase.initializeApp();
+  String msg = '';
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Future checkStatus() async {
+    FirebaseAuth.instance.currentUser?.updateDisplayName(profile.name);
+  }
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: firebase,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text(
+              "${snapshot.error}",
+            );
+          }
+          if (snapshot.connectionState == ConnectionState.done) {
+            return buildPageRegister(context);
+          }
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        });
+  }
+
+  SingleChildScrollView buildPageRegister(BuildContext context) {
     return SingleChildScrollView(
       child: Container(
         height: MediaQuery.of(context).size.height,
@@ -41,7 +74,10 @@ class _SignInWithEmailAndPasswordState
               height: 20.0,
             ),
             TitleHeaderWithImage(title: "LOGIN"),
-            EmailAndPasswordTextField(),
+            EmailAndPasswordTextField(
+              formkey: formKey,
+              profile: profile,
+            ),
             BuildTextButton(
               textbtn: "Forgot Password?",
               press: () {},
@@ -54,7 +90,14 @@ class _SignInWithEmailAndPasswordState
               child: Btn(
                 title: "Login",
                 color: kPrimaryColor,
-                press: () {},
+                press: () {
+                  if (formKey.currentState!.validate()) {
+                    formKey.currentState!.save();
+                    checkStatus();
+
+                    signInWithEmailAndPassword();
+                  }
+                },
                 textStyle: kTextBtnStyle.copyWith(
                   color: Colors.white,
                 ),
@@ -66,14 +109,7 @@ class _SignInWithEmailAndPasswordState
             LoginAndRegisterButton(
               btn1: "Login",
               btn2: "Register",
-              press1: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginUI(),
-                  ),
-                );
-              },
+              press1: () {},
               press2: () {
                 Navigator.pushReplacement(
                   context,
@@ -98,5 +134,38 @@ class _SignInWithEmailAndPasswordState
         ),
       ),
     );
+  }
+
+  Future signInWithEmailAndPassword() async {
+    try {
+      await FirebaseAuth.instance
+          .signInWithEmailAndPassword(
+        email: profile.email,
+        password: profile.password,
+      )
+          .then((value) {
+        formKey.currentState!.reset();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileUI(),
+          ),
+        );
+      });
+    } on FirebaseAuthException catch (e) {
+      if (e.code == "weak-password") {
+        msg = "Password must be at least 6 characters long.";
+      } else {
+        msg = e.message.toString();
+      }
+      Fluttertoast.showToast(
+        msg: msg,
+        gravity: ToastGravity.TOP,
+        backgroundColor: kPrimaryColor,
+        textColor: kSecondaryColor,
+        fontSize: 20.0,
+        timeInSecForIosWeb: 1,
+      );
+    }
   }
 }

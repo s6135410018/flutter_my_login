@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_my_login/views/components/profile_ui.dart';
 import 'package:flutter_my_login/views/widgets/btn.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_field_validator/form_field_validator.dart';
 
 import '../../../constants.dart';
@@ -29,6 +31,7 @@ class _MainRegisterState extends State<MainRegister> {
   final Future<FirebaseApp> firebase = Firebase.initializeApp();
   final formKey = GlobalKey<FormState>();
   Profile profile = Profile();
+  String msg = "";
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +72,12 @@ class _MainRegisterState extends State<MainRegister> {
                 Align(
                   child: Btn(
                     title: "Register",
-                    press: () {},
+                    press: () {
+                      if (formKey.currentState!.validate()) {
+                        formKey.currentState!.save();
+                        createEmailAndPassword();
+                      }
+                    },
                     color: kPrimaryColor,
                   ),
                 ),
@@ -116,45 +124,87 @@ class _MainRegisterState extends State<MainRegister> {
         });
   }
 
-  Column enterNameAndEmailAndPassword() {
-    return Column(
-      children: [
-        BuildTextField(
-          text: "Enter Your UserName",
-          image: "assets/icons/person.svg",
-          validate: RequiredValidator(errorText: "Please Enter Your UserName"),
-          save: (value) => profile.name = value.toString().trim(),
-        ),
-        BuildTextField(
-          text: "Enter Your Email",
-          image: "assets/icons/email.svg",
-          textType: TextInputType.emailAddress,
-          validate: MultiValidator(
-            [
-              RequiredValidator(errorText: "Please Enter Your email"),
-              EmailValidator(errorText: "Invalid email format"),
-            ],
+  Widget enterNameAndEmailAndPassword() {
+    return Form(
+      key: formKey,
+      child: Column(
+        children: [
+          BuildTextField(
+            text: "Enter Your UserName",
+            image: "assets/icons/person.svg",
+            validate:
+                RequiredValidator(errorText: "Please Enter Your UserName"),
+            save: (value) => profile.name = value.toString().trim(),
           ),
-          save: (value) => profile.email = value.toString().trim(),
-        ),
-        BuildTextField(
-          text: "Enter Your Password",
-          image: "assets/icons/password.svg",
-          textType: TextInputType.number,
-          obsecure: true,
-          validate: RequiredValidator(
-            errorText: "Please Enter Your Password",
+          BuildTextField(
+            text: "Enter Your Email",
+            image: "assets/icons/email.svg",
+            textType: TextInputType.emailAddress,
+            validate: MultiValidator(
+              [
+                RequiredValidator(errorText: "Please Enter Your email"),
+                EmailValidator(errorText: "Invalid email format"),
+              ],
+            ),
+            save: (value) => profile.email = value.toString().trim(),
           ),
-          save: (value) => profile.password = value.toString().trim(),
-        ),
-      ],
+          BuildTextField(
+            text: "Enter Your Password",
+            image: "assets/icons/password.svg",
+            textType: TextInputType.number,
+            obsecure: true,
+            validate: RequiredValidator(
+              errorText: "Please Enter Your Password",
+            ),
+            save: (value) => profile.password = value.toString().trim(),
+          ),
+        ],
+      ),
     );
   }
 
-  void createEmailAndPassword() {
-    FirebaseAuth.instance.createUserWithEmailAndPassword(
-      email: profile.email,
-      password: profile.password,
-    );
+  Future createEmailAndPassword() async {
+    try {
+      await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: profile.email,
+        password: profile.password,
+      )
+          .then(
+        (value) {
+          formKey.currentState!.reset();
+          Fluttertoast.showToast(
+            msg: "User account has been created.",
+            gravity: ToastGravity.TOP,
+            backgroundColor: kPrimaryColor,
+            textColor: kSecondaryColor,
+            fontSize: 20.0,
+            timeInSecForIosWeb: 1,
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProfileUI(),
+            ),
+          );
+        },
+      );
+    } on FirebaseAuthException catch (e) {
+      if (e.code == "email-already-in-use") {
+        msg = "The email is already in use. Please try another email";
+      } else if (e.code == "weak-password") {
+        msg = "Password must be at least 6 characters long.";
+      } else {
+        msg = e.message.toString();
+      }
+      Fluttertoast.showToast(
+        msg: msg,
+        gravity: ToastGravity.TOP,
+        backgroundColor: kPrimaryColor,
+        textColor: kSecondaryColor,
+        fontSize: 20.0,
+        timeInSecForIosWeb: 1,
+      );
+    }
   }
 }

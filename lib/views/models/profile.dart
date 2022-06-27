@@ -4,8 +4,8 @@ class Profile {
   String password;
 
   Profile({
-    this.name = "",
-    this.email = "",
-    this.password = "",
+    this.name = '',
+    this.email = '',
+    this.password = '',
   });
 }
