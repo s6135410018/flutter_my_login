@@ -1,9 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-import 'page3/header_profile.dart';
-import 'page3/pivture.dart';
+import 'page_3/header_profile.dart';
+import 'page_3/picture.dart';
 
 class ProfileUI extends StatefulWidget {
   const ProfileUI({Key? key}) : super(key: key);
