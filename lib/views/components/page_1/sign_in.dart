@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_my_login/views/components/page_1/title_header_with_image.dart';
 import 'package:flutter_my_login/views/components/register.dart';
+import 'package:flutter_my_login/views/home_ui.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../constants.dart';
@@ -30,16 +31,7 @@ class _SignInWithEmailAndPasswordState
   final formKey = GlobalKey<FormState>();
   final Future<FirebaseApp> firebase = Firebase.initializeApp();
   String msg = '';
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  Future checkStatus() async {
-    FirebaseAuth.instance.currentUser?.updateDisplayName(profile.name);
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -93,8 +85,6 @@ class _SignInWithEmailAndPasswordState
                 press: () {
                   if (formKey.currentState!.validate()) {
                     formKey.currentState!.save();
-                    checkStatus();
-
                     signInWithEmailAndPassword();
                   }
                 },
@@ -109,7 +99,14 @@ class _SignInWithEmailAndPasswordState
             LoginAndRegisterButton(
               btn1: "Login",
               btn2: "Register",
-              press1: () {},
+              press1: () {
+                  Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeUI(),
+                  ),
+                );
+              },
               press2: () {
                 Navigator.pushReplacement(
                   context,

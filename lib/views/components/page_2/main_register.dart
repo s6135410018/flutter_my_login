@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_my_login/views/components/profile_ui.dart';
+import 'package:flutter_my_login/views/home_ui.dart';
 import 'package:flutter_my_login/views/widgets/btn.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:form_field_validator/form_field_validator.dart';
@@ -92,7 +93,7 @@ class _MainRegisterState extends State<MainRegister> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => LoginUI(),
+                        builder: (context) => HomeUI(),
                       ),
                     );
                   },
